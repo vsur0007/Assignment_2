@@ -20,105 +20,195 @@
   <script>
     const spec = {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "title": "COVID-19 Active Cases (2020)",
-  "width": 800,
-  "height": 400,
   "data": {
-    "url": "https://raw.githubusercontent.com/FIT3179/Vega-Lite/main/3_choropleth_map/js/ne_110m_admin_0_countries.topojson",
-    "format": {"type": "topojson", "feature": "ne_110m_admin_0_countries"}
+    "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_10_Homework/earthquake_data.csv"
   },
-  "projection": {"type": "equalEarth"},
-  "layer": [
+  "title": "Earthquakes above a magnitude of 5 (2000-2021)",
+  "vconcat": [
     {
-      "transform": [
+      "hconcat": [
         {
-          "calculate": "'Data is not available in ' + datum.properties.NAME",
-          "as": "note"
-        }
-      ],
-      "mark": {"type": "geoshape", "fill": "lightgray", "stroke": "white"},
-      "encoding": {"tooltip": {"field": "note"}}
-    },
-    {
-      "data": {
-        "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_9_Homework/oceans.topojson",
-        "format": {"type": "topojson", "feature": "oceans"}
-      },
-      "mark": {"type": "geoshape", "fill": "skyblue"}
-    },
-    {
-      "data": {
-        "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_9_Homework/ne_110m_admin_0_countries.topojson",
-        "format": {"type": "topojson", "feature": "ne_110m_graticules_30"}
-      },
-      "mark": {"type": "geoshape", "fill": null, "stroke": "lightgray"}
-    },
-    {
-      "transform": [
-        {
-          "lookup": "properties.NAME",
-          "from": {
-            "data": {
-              "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_9_Homework/covid_10_10_2020.csv"
+          "width": 1200,
+          "height": 600,
+          "projection": {"type": "equalEarth", "rotate": [-150, 0, 0]},
+          "layer": [
+            {
+              "data": {
+                "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_10_Homework/ne_110m_admin_0_countries.topojson",
+                "format": {
+                  "type": "topojson",
+                  "feature": "ne_110m_admin_0_countries"
+                }
+              },
+              "mark": {
+                "type": "geoshape",
+                "fill": "lightgray",
+                "stroke": "white"
+              }
             },
-            "key": "Country",
-            "fields": ["Active", "Confirmed", "Population"]
-          }
+            {
+              "data": {
+                "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_10_Homework/others_oceans.topojson",
+                "format": {"type": "topojson", "feature": "oceans"}
+              },
+              "mark": {"type": "geoshape", "fill": "skyblue"}
+            },
+            {
+              "data": {
+                "url": "https://raw.githubusercontent.com/vsur0007/FIT3179_Sem_2/main/Week_10_Homework/WorldMapWithGraticules.topojson",
+                "format": {
+                  "type": "topojson",
+                  "feature": "ne_110m_graticules_30"
+                }
+              },
+              "mark": {"type": "geoshape", "fill": null, "stroke": "lightgray"}
+            },
+            {
+              "transform": [{"filter": {"param": "time_brush"}}],
+              "encoding": {
+                "longitude": {"field": "longitude", "type": "quantitative"},
+                "latitude": {"field": "latitude", "type": "quantitative"},
+                "color": {
+                  "field": "mag",
+                  "type": "quantitative",
+                  "title": "Magnitude",
+                  "scale": {
+                    "type": "threshold",
+                    "domain": [5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5],
+                    "range": [
+                      "#FFCDD2",
+                      "#EF9A9A",
+                      "#E57373",
+                      "#EF5350",
+                      "#F44336",
+                      "#E53935",
+                      "#D32F2F",
+                      "#C62828",
+                      "#B71C1C"
+                    ]
+                  }
+                },
+                "tooltip": [
+                  {"field": "time", "type": "temporal"},
+                  {"field": "mag", "type": "quantitative"},
+                  {"field": "place", "type": "nominal"}
+                ]
+              },
+              "layer": [
+                {"mark": {"type": "circle", "opacity": 0.4, "size": 15}},
+                {
+                  "transform": [
+                    {
+                      "window": [{"op": "rank", "as": "ranking"}],
+                      "sort": [{"field": "mag", "order": "descending"}]
+                    },
+                    {"filter": "datum.ranking == 1"},
+                    {
+                      "calculate": "'The worst earthquake of; the selected period: ' + datum['mag']",
+                      "as": "text_annotation_raw"
+                    },
+                    {
+                      "calculate": "split(datum.text_annotation_raw, ';')",
+                      "as": "text_annotation"
+                    }
+                  ],
+                  "layer": [
+                    {
+                      "mark": {
+                        "type": "point",
+                        "size": 200,
+                        "shape": "M0,.5L.6,.8L.5,.1L1,-.3L.3,-.4L0,-1L-.3,-.4L-1,-.3L-.5,.1L-.6,.8L0,.5Z"
+                      },
+                      "encoding": {
+                        "color": {
+                          "field": "mag",
+                          "type": "quantitative",
+                          "legend": null
+                        }
+                      }
+                    },
+                    {
+                      "mark": {
+                        "type": "text",
+                        "align": "right",
+                        "dx": -8,
+                        "dy": -8,
+                        "baseline": "middle",
+                        "fontStyle": "italic"
+                      },
+                      "encoding": {"text": {"field": "text_annotation"}}
+                    }
+                  ]
+                }
+              ],
+              "resolve": {"scale": {"color": "independent"}}
+            }
+          ]
         },
         {
-          "calculate": "datum.Confirmed/datum.Population * 10000",
-          "as": "Confirmed per 10,000 people"
+          "width": 800,
+          "height": 300,
+          "transform": [
+            {
+              "bin": {"step": 0.5, "extent": [5, 9.5]},
+              "field": "mag",
+              "as": "magnitude"
+            }
+          ],
+          "mark": "area",
+          "encoding": {
+            "x": {
+              "field": "time",
+              "timeUnit": "yearmonth",
+              "scale": {"domain": {"param": "time_brush"}},
+              "axis": {"title": "", "tickCount": 5, "grid": false}
+            },
+            "y": {"aggregate": "count", "title": "Count of Earthquakes"},
+            "color": {
+              "field": "magnitude",
+              "scale": {
+                "range": ["#FFD180", "#FFAB40", "#FF9100", "#FF6D00", "#FF3D00"]
+              },
+              "legend": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "width": 1200,
+      "height": 100,
+      "mark": {"type": "line", "color": "#FF9100"},
+      "title": "Use this line chart to filter out the data based on time",
+      "params": [
+        {
+          "name": "time_brush",
+          "select": {"type": "interval", "encodings": ["x"]}
         }
       ],
-      "mark": {"type": "geoshape", "stroke": "white"},
       "encoding": {
-        "color": {
-          "field": "Confirmed per 10,000 people",
-          "type": "quantitative",
-          "scale": {
-            "type": "threshold",
-            "domain": [
-              10,
-              30,
-              50,
-              70,
-              90,
-              110,
-              130,
-              150,
-              170,
-              190,
-              210,
-              230,
-              250,
-              270
-            ],
-            "range": [
-              "#fdbe85",
-              "#faaa61",
-              "#fc9435",
-              "#e6550d",
-              "#a63903",
-              "#a63603",
-              "#752602",
-              "#571c01",
-              "#080200"
-            ]
-          }
+        "x": {
+          "field": "time",
+          "timeUnit": "yearmonth",
+          "axis": {"title": "", "format": "%Y"}
         },
-        "tooltip": [
-          {"field": "properties.NAME", "type": "nominal", "title": "Country"},
-          {"field": "Active", "type": "quantitative"},
-          {
-            "field": "Confirmed per 10,000 population",
-            "type": "quantitative",
-            "format": ".2f"
-          }
-        ]
-      }
+        "y": {
+          "aggregate": "count",
+          "axis": {"tickCount": 3, "grid": false},
+          "title": "Count"
+        }
+      },
+      "highlight": {"time_brush": true, "color": "white", "opacity": 0.3}
     }
   ],
-  "config": {}
+  "config": {
+    "background": "black",
+    "title": {"font": "sans-serif", "fontSize": 16, "color": "white"},
+    "axis": {"labelColor": "white", "titleColor": "white"},
+    "header": {"labelColor": "white"},
+    "legend": {"labelColor": "white", "titleColor": "white"},
+    "text": {"color": "white"}
+  }
 };
     vegaEmbed("#vis", spec, {mode: "vega-lite"}).then(console.log).catch(console.warn);
   </script>
